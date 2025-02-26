@@ -1,7 +1,21 @@
 import { useState } from 'react'
 
-const Statistics = (props) => {
-  if (props.good === 0 && props.neutral === 0 && props.bad === 0) {
+const Button = ({ handleClick, text }) => {
+  return <button onClick={handleClick}>{text}</button>
+}
+
+const StatisticLine = ({ text, value }) => {
+  return (
+    <p>{text} {value}</p>
+  )
+}
+
+const Statistics = ({ good, neutral, bad }) => {
+
+  let average = (good - bad) / (good + neutral + bad)
+  let positive = (good / (good + neutral + bad)) * 100
+
+  if (good === 0 && neutral === 0 && bad === 0) {
     return (
       <div>
         <h2>statistics</h2>
@@ -13,29 +27,15 @@ const Statistics = (props) => {
       <div>
         <h2>statistics</h2>
 
-        <p>good {props.good !== 0 ? props.good : null}</p>
-        <p>neutral {props.neutral !== 0 ? props.neutral : null}</p>
-        <p>bad {props.bad !== 0 ? props.bad : null}</p>
-        <p>all {props.good + props.neutral + props.bad !== 0 ? props.good + props.neutral + props.bad : null}</p>
-        <CalculateAverage good={props.good} neutral={props.neutral} bad={props.bad} />
-        <CalculatePositive good={props.good} neutral={props.neutral} bad={props.bad} />
+        <StatisticLine text='good' value={good !== 0 ? good : null} />
+        <StatisticLine text='neutral' value={neutral !== 0 ? neutral : null} />
+        <StatisticLine text='bad' value={bad !== 0 ? bad : null} />
+        <StatisticLine text='all' value={good + neutral + bad !== 0 ? good + neutral + bad : null} />
+        <StatisticLine text='average' value={average !== 0 && !isNaN(average) ? average : null} />
+        <StatisticLine text='positive' value={positive !== 0 && !isNaN(positive) ? positive + ' %' : null} />
       </div>
     )
   }
-}
-
-const CalculateAverage = ({ good, neutral, bad }) => {
-  let average = (good - bad) / (good + neutral + bad)
-  return (
-    <p>average {average !== 0 && !isNaN(average) ? average : null}</p>
-  )
-}
-
-const CalculatePositive = ({ good, neutral, bad }) => {
-  let positive = (good / (good + neutral + bad)) * 100
-  return (
-    <p>positive {positive !== 0 && !isNaN(positive) ? positive + ' %' : null}</p>
-  )
 }
 
 const App = () => {
@@ -59,9 +59,9 @@ const App = () => {
   return (
     <div>
       <h1>give feedback</h1>
-      <button onClick={HandleAddGood}>good</button>
-      <button onClick={HandleAddNeutral}>neutral</button>
-      <button onClick={HandleAddBad}>bad</button>
+      <Button handleClick={HandleAddGood} text='good' />
+      <Button handleClick={HandleAddNeutral} text='neutral' />
+      <Button handleClick={HandleAddBad} text='bad' />
 
       <Statistics good={good} neutral={neutral} bad={bad} />
     </div>
