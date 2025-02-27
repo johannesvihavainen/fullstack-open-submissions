@@ -20,11 +20,8 @@ const App = () => {
   }, [])
 
   const addPerson = (event) => {
-    console.log(newName);
     event.preventDefault()
-    const updatedData = { name: newName, number: newNumber}
-    console.log(updatedData.id);
-
+    const updatedData = { name: newName, number: newNumber }
     if (persons.some(person => person.name === updatedData.name)) {
       alert(`${updatedData.name} is already added to the phonebook.`)
       return
@@ -32,10 +29,29 @@ const App = () => {
       axios.post(`http://localhost:3001/persons/`, updatedData)
         .then(response => {
           console.log('data sent successfully to server', response.data)
-          setPersons(persons.concat(updatedData))
+          setPersons(persons.concat(response.data))
           setNewName('')
           setNewNumber('')
         })
+    }
+  }
+
+  const deleteName = (id) => {
+    const findPerson = persons.find(person => person.id === id)
+    const confirm = window.confirm(`Delete ${findPerson?.name}`)
+
+    if (confirm) {
+      personService
+        .remove(id).then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+          console.log('deleting person with id:', id);
+        })
+        .catch(error => {
+          console.log('error deleting person', error)
+          alert('error deleting person')
+        })
+    } else {
+      alert('Canceled.')
     }
   }
 
@@ -59,7 +75,7 @@ const App = () => {
       <h2>Add a new</h2>
       <PersonForm addPerson={addPerson} newName={newName} newNumber={newNumber} handleNameInput={handleNameInput} handleNumberInput={handleNumberInput} />
       <h3>Numbers</h3>
-      <DisplayPersons persons={filteredPersons ? filteredPersons : persons} />
+      <DisplayPersons persons={filteredPersons ? filteredPersons : persons} deleteName={deleteName} />
     </div>
   )
 }
