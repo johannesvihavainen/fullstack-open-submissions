@@ -16,11 +16,18 @@ const App = () => {
   ])
   const [newName, setNewName] = useState('')
 
-  const addName = () => {
+  const addName = (event) => {
+    console.log(newName);
     event.preventDefault()
     const updatedData = { name: newName }
-    setPersons(persons.concat(updatedData))
-    setNewName('')
+    if (persons.some(person => person.name === updatedData.name)) {
+      alert(`${updatedData.name} is already added to the phonebook.`)
+      return
+    } else {
+      setPersons(persons.concat(updatedData))
+      setNewName('')
+    }
+    
   }
 
   const handleInput = (event) => {
@@ -30,12 +37,12 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <form>
+      <form onSubmit={addName}>
         <div>
           name: <input onChange={handleInput} />
         </div>
         <div>
-          <button type="submit" onClick={addName}>add</button>
+          <button type="submit">add</button>
         </div>
       </form>
       <h2>Numbers</h2>
