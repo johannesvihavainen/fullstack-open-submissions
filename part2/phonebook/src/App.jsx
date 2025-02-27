@@ -19,13 +19,40 @@ const App = () => {
       })
   }, [])
 
-  const addPerson = (event) => {
-    event.preventDefault()
-    const updatedData = { name: newName, number: newNumber }
-    if (persons.some(person => person.name === updatedData.name)) {
-      alert(`${updatedData.name} is already added to the phonebook.`)
-      return
+  const addPerson = () => {
+
+    if (persons.some(obj => obj.name === newName)) {
+      const confirm = window.confirm(`the name ${newName} cannot be used again. Replace the phone number with a new one?`)
+
+      if (confirm) {
+        persons.map(user => {
+          if (user.name === newName) {
+            const updatedData = {
+              name: newName,
+              number: newNumber
+            }
+            axios.put(`http://localhost:3001/persons/${user.id}`, updatedData)
+              .then(() => {
+                alert(
+                  `the number ${newNumber} was successfully replaced for ${newName} `
+                )
+
+              })
+          }
+        })
+      } else {
+        alert('Canceled.')
+      }
+
+
+
+
+      // alert(`the name ${newName} cannot be used again.`)
+      setNewName('')
+
+
     } else {
+      const updatedData = { name: newName, number: newNumber }
       axios.post(`http://localhost:3001/persons/`, updatedData)
         .then(response => {
           console.log('data sent successfully to server', response.data)
@@ -34,6 +61,16 @@ const App = () => {
           setNewNumber('')
         })
     }
+
+
+
+
+
+
+
+
+
+
   }
 
   const deleteName = (id) => {
