@@ -90,16 +90,6 @@ const App = () => {
           }, 5000);
         })
     }
-
-
-
-
-
-
-
-
-
-
   }
 
   const deleteName = (id) => {
@@ -113,9 +103,15 @@ const App = () => {
           console.log('deleting person with id:', id);
         })
         .catch(error => {
-          console.log('error deleting person', error)
-          alert('error deleting person')
+          console.log(error)
+          setErrorMessage(
+            `${findPerson?.name} with number ${findPerson?.number} was already removed from the server`
+          )
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 5000)
         })
+
     } else {
       alert('Canceled.')
     }
