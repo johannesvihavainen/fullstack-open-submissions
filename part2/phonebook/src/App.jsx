@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react'
+import './index.css'
 import axios from 'axios'
 import personService from './services/persons'
 import DisplayPersons from './components/DisplayPersons'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
+import SuccessMessage from './components/SuccessMessage'
+import ErrorMessage from './components/ErrorMessage'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filteredPersons, setFilteredPersons] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     personService
@@ -19,8 +24,8 @@ const App = () => {
       })
   }, [])
 
-  const addPerson = () => {
-
+  const addPerson = (event) => {
+    event.preventDefault()
     if (persons.some(obj => obj.name === newName)) {
       const confirm = window.confirm(`the name ${newName} cannot be used again. Replace the phone number with a new one?`)
 
@@ -32,7 +37,10 @@ const App = () => {
               number: newNumber
             }
             axios.put(`http://localhost:3001/persons/${user.id}`, updatedData)
-              .then(() => {
+              .then((response) => {
+                setPersons(persons.map(person => person.id === user.id ? response.data : person))
+                setNewName('')
+                setNewNumber('')
                 alert(
                   `the number ${newNumber} was successfully replaced for ${newName} `
                 )
@@ -59,6 +67,27 @@ const App = () => {
           setPersons(persons.concat(response.data))
           setNewName('')
           setNewNumber('')
+
+          setSuccessMessage(
+            `${newName} with number ${newNumber} was successfully added into the phonebook`
+          )
+
+          setTimeout(() => {
+            setSuccessMessage(null)
+          }, 5000);
+        })
+        .catch(error => {
+          console.error('error sending data', error)
+
+          if (error.response && error.response.data.error) {
+            setErrorMessage(error.response.data.error)
+          } else {
+            setErrorMessage('An unexpected error occurred. Please try again.')
+          }
+
+          setTimeout(() => {
+            setSuccessMessage(null)
+          }, 5000);
         })
     }
 
@@ -108,6 +137,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <SuccessMessage message={successMessage} />
+      <ErrorMessage message={errorMessage} />
       <Filter handleFilter={handleFilter} />
       <h2>Add a new</h2>
       <PersonForm addPerson={addPerson} newName={newName} newNumber={newNumber} handleNameInput={handleNameInput} handleNumberInput={handleNumberInput} />
