@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
+import FetchWeatherData from './components/FetchWeatherData'
 
 function App() {
   const [data, setData] = useState(null)
@@ -81,6 +82,7 @@ function App() {
                   ))}
                 </ul>
                 <img className='coat-of-arms' alt="coat of arms" src={item.coatOfArms.png} />
+                <FetchWeatherData item={item.capital}/>
               </div>
             ))}
           </div>
