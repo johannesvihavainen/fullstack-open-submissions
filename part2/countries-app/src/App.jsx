@@ -7,6 +7,7 @@ function App() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
   const [inputValue, setInputValue] = useState('')
+  const [preview, setPreview] = useState(null)
 
   const baseUrl = 'https://studies.cs.helsinki.fi/restcountries/api/all'
 
@@ -26,7 +27,32 @@ function App() {
 
   const handleInput = (event) => {
     setInputValue(event.target.value)
+    setPreview(null)
   }
+
+  const displayDetails = (item) => {
+    setPreview(prev => (prev === item ? null : item))
+  }
+
+  const PreviewCountry = ({ item }) => {
+    return (
+      <div>
+        <div key={item.name.common}>
+          <h1>{item.name.common}</h1>
+          <p>Capital {item.capital}</p>
+          <p>Area {item.area}</p>
+          <h2>Languages</h2>
+          <ul>
+            {Object.values(item.languages).map(language => (
+              <li key={language}>{language}</li>
+            ))}
+          </ul>
+          <img className='coat-of-arms' alt="coat of arms" src={item.coatOfArms.png} />
+        </div>
+      </div>
+    )
+  }
+
 
   const ReturnCountries = () => {
     if (!data) {
@@ -64,8 +90,9 @@ function App() {
         return (
           <div>
             {filteredCountries.map(item => (
-              <p key={item.name.common}>{item.name.common}</p>
+              <p key={item.name.common}>{item.name.common} <span><button onClick={() => displayDetails(item)}>Show</button></span></p>
             ))}
+            {preview && <PreviewCountry item={preview} />}
           </div>
         )
       }
