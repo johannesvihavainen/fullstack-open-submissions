@@ -36,13 +36,20 @@ function App() {
         return item.name.common.toLowerCase().includes(inputValue.toLowerCase())
       })
 
-      return (
-        <div>
-          {filteredCountries.map(item => (
-            <p key={item.name.common}>{item.name.common}</p>
-          ))}
-        </div>
-      )
+      if(filteredCountries.length >= 10) {
+        return <p>Too many matches, specify another filter</p>
+      }
+      else {
+        return (
+          <div>
+            {filteredCountries.map(item => (
+              <p key={item.name.common}>{item.name.common}</p>
+            ))}
+          </div>
+        )
+      }
+
+      
     }
   }
 
