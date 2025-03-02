@@ -1,0 +1,15 @@
+.search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.search input {
+    height: 20px;
+}
+.single-capital {
+    font-weight: bold;
+    font-size: 2rem;
+}
+.coat-of-arms {
+    width: 150px;
+}
