@@ -36,7 +36,7 @@ const App = () => {
               name: newName,
               number: newNumber
             }
-            axios.put(`http://localhost:3001/persons/${user.id}`, updatedData)
+            axios.put(`http://localhost:3001/api/persons/${user.id}`, updatedData)
               .then((response) => {
                 setPersons(persons.map(person => person.id === user.id ? response.data : person))
                 setNewName('')
@@ -61,7 +61,7 @@ const App = () => {
 
     } else {
       const updatedData = { name: newName, number: newNumber }
-      axios.post(`http://localhost:3001/persons/`, updatedData)
+      axios.post(`http://localhost:3001/api/persons/`, updatedData)
         .then(response => {
           console.log('data sent successfully to server', response.data)
           setPersons(persons.concat(response.data))
