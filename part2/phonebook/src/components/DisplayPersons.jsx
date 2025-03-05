@@ -1,3 +1,6 @@
+import React from 'react'
+import PropTypes from 'prop-types';
+
 const DisplayPersons = ({ persons, deleteName }) => {
   return (
     <div>
@@ -7,5 +10,16 @@ const DisplayPersons = ({ persons, deleteName }) => {
     </div>
   )
 }
+
+DisplayPersons.propTypes = {
+  persons: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      number: PropTypes.string.isRequired
+    })
+  ).isRequired,
+  deleteName: PropTypes.func.isRequired,
+};
 
 export default DisplayPersons
