@@ -42,7 +42,8 @@ const App = () => {
             }
             axios.put(`https://phonebook-backend-nameless-bush-5256.fly.dev/api/persons${user.id}`, updatedData)
               .then((response) => {
-                setPersons(persons.map(person => person.id === user.id ? response.data : person))
+                setPersons(previousPersons => previousPersons.map(person => person.id === user.id ? response.data : person))
+                
                 setNewName('')
                 setNewNumber('')
                 alert(
@@ -68,7 +69,7 @@ const App = () => {
       axios.post(`https://phonebook-backend-nameless-bush-5256.fly.dev/api/persons`, updatedData)
         .then(response => {
           console.log('data sent successfully to server', response.data)
-          setPersons(persons.concat(response.data))
+          setPersons(previousPersons => [...previousPersons, {...response.data, id: response.data._id}])
           setNewName('')
           setNewNumber('')
 
@@ -104,7 +105,7 @@ const App = () => {
     if (confirm) {
       personService
         .remove(id).then(() => {
-          setPersons(persons.filter(person => person.id !== id))
+          setPersons(previousPersons => previousPersons.filter(person => person.id !== id))
           console.log('deleting person with id:', id);
         })
         .catch(error => {
