@@ -61,14 +61,32 @@ test('a valid blog post can be added ', async () => {
     .expect('Content-Type', /application\/json/)
 
 
-    const blogsAtEnd = await Blog.find({})
+  const blogsAtEnd = await Blog.find({})
 
-    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
+  assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
 
-    const blogs = blogsAtEnd.map(blog => blog.title)
-    assert.ok(blogs.includes(newBlogPost.title), 'the new blog was not saved in the right way')
+  const blogs = blogsAtEnd.map(blog => blog.title)
+  assert.ok(blogs.includes(newBlogPost.title), 'the new blog was not saved in the right way')
 })
 
+
+test('if the likes is missing, then likes will default to 0', async () => {
+  const newBlogPost = {
+    title: "a blog post without likes",
+    author: "some random guy",
+    url: "nolinktoanywhere.com",
+  }
+
+
+  const response = await api
+    .post('/api/blogs')
+    .send(newBlogPost)
+    .expect(201)
+
+  const allBlogs = response.body
+
+  assert.strictEqual(allBlogs.likes, 0, 'likes should be defaulting to 0 if they are missing')
+})
 
 after(async () => {
   await mongoose.connection.close()
