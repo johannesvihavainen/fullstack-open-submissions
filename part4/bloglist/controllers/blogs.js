@@ -31,5 +31,17 @@ router.delete('/:id', async (request, response) => {
     }
 })
 
+router.put('/:id', async (request, response) => {
+    const { likes } = request.body
+
+    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, {likes}, {new: true, runValidators: true})
+    
+    if(updatedBlog) {
+        response.json(updatedBlog)
+    } else {
+        response.status(404).end()
+    }
+})
+
 module.exports = router
 

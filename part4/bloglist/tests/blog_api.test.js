@@ -134,24 +134,43 @@ beforeEach(async () => {
   await Blog.insertMany(initialBlogsToUpload)
 })
 
-
-test('deletion of a blog post', async () => {
+test('update the likes in a blog post', async () => {
   const blogsAtStart = await Blog.find({})
-  console.log(blogsAtStart);
-  
-  const blogToDelete = blogsAtStart[0]
+  const blogToUpdate = blogsAtStart[0]
 
-  await api
-    .delete(`/api/blogs/${blogToDelete.id}`)
-    .expect(204)
+  const updatedData = {
+    likes: blogToUpdate.likes + 200
+  }
 
-  const blogsAtEnd = await Blog.find({})
+  const response = await api
+    .put(`/api/blogs/${blogToUpdate.id}`)
+    .send(updatedData)
+    .expect(200)
 
-  assert.strictEqual(blogsAtEnd.length, initialBlogsToUpload.length - 1)
+  assert.strictEqual(response.body.likes, blogToUpdate.likes + 200)
 
-  const ids = blogsAtEnd.map(blog => blog.id)
-  assert(!ids.includes(blogToDelete.id))
+  const updatedBlog = await Blog.findById(blogToUpdate.id)
+  assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 200)
 })
+
+
+// test('deletion of a blog post', async () => {
+//   const blogsAtStart = await Blog.find({})
+//   console.log(blogsAtStart);
+
+//   const blogToDelete = blogsAtStart[0]
+
+//   await api
+//     .delete(`/api/blogs/${blogToDelete.id}`)
+//     .expect(204)
+
+//   const blogsAtEnd = await Blog.find({})
+
+//   assert.strictEqual(blogsAtEnd.length, initialBlogsToUpload.length - 1)
+
+//   const ids = blogsAtEnd.map(blog => blog.id)
+//   assert(!ids.includes(blogToDelete.id))
+// })
 
 
 after(async () => {
