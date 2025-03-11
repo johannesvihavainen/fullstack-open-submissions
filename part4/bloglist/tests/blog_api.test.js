@@ -88,6 +88,32 @@ test('if the likes is missing, then likes will default to 0', async () => {
   assert.strictEqual(allBlogs.likes, 0, 'likes should be defaulting to 0 if they are missing')
 })
 
+test('blog post without a title will not be added', async () => {
+  const newBlogPost = {
+    author: "someone from somewhere once upon a time",
+    url: "nolinktoanywhere.com",
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlogPost)
+    .expect(400)
+})
+
+test('blog post without a url will not be added', async () => {
+  const newBlogPost = {
+    title: 'author from testingland',
+    author: "someone from somewhere once upon a time",
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlogPost)
+    .expect(400)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })

@@ -8,6 +8,13 @@ response.json(blogs)
 })
 
 router.post('/', async (request, response) => {
+
+    const {title, url, author, likes} = request.body
+    
+    if(!title || !url) {
+        return response.status(400).json({error: 'the title and url are required in a blog post'})
+    }
+    
     const blog = new Blog(request.body)
 
     const saveBlog = await blog.save()
