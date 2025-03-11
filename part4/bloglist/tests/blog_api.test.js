@@ -23,6 +23,26 @@ test('blogs are returned as json and contain the right amount of blog posts', as
   assert.strictEqual(response.body.length, blogsAtStart.length)
 })
 
+test('blog posts contain id field instead of being _id', async () => {
+  const response = await api.get('/api/blogs')
+
+  console.log('logging response body');
+
+  console.log(response.body[0]);
+
+
+
+  response.body.forEach(blog => {
+    assert.ok(blog.id, 'expected blog to contain an id property')
+    assert.strictEqual(typeof blog.id, 'string', 'id should be a string')
+    assert.strictEqual(blog._id, undefined, '_id should not exist')
+  });
+
+
+  console.log(response.body)
+})
+
+
 after(async () => {
   await mongoose.connection.close()
 })
