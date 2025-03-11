@@ -43,6 +43,33 @@ test('blog posts contain id field instead of being _id', async () => {
 })
 
 
+test('a valid blog post can be added ', async () => {
+
+  const blogsAtStart = await Blog.find({})
+
+  const newBlogPost = {
+    title: "Do the hard work especially when you don't feel like it.",
+    author: "someone from somewhere once upon a time",
+    url: "nolinktoanywhere.com",
+    likes: 999999999
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlogPost)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+
+    const blogsAtEnd = await Blog.find({})
+
+    assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
+
+    const blogs = blogsAtEnd.map(blog => blog.title)
+    assert.ok(blogs.includes(newBlogPost.title), 'the new blog was not saved in the right way')
+})
+
+
 after(async () => {
   await mongoose.connection.close()
 })
