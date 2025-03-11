@@ -1,3 +1,5 @@
+process.env.NODE_ENV = 'test'
+console.log('NODE_ENV:', process.env.NODE_ENV)
 const { test, after } = require('node:test')
 const mongoose = require('mongoose')
 const supertest = require('supertest')
