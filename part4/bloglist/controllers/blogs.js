@@ -12,30 +12,16 @@ router.get('/', async (request, response) => {
 router.post('/', async (request, response) => {
 
     const { title, url, author, likes } = request.body
+    const user = request.user
 
     const token = request.token
-    if (!token) {
-        return response.status(401).json({ error: 'token is missing' })
+    if (!user) {
+        return response.status(401).json({ error: 'user is missing' })
     }
-
-    let secretToken
-    try {
-        secretToken = jwt.verify(token, process.env.SECRET)
-    } catch {
-        return response.status(401).json({ error: 'invalid token' })
-    }
-
-    if (!secretToken.id) {
-        return response.status(401).json({ error: 'invalid token' })
-    }
-    const user = await User.findById(secretToken.id)
 
     if (!title || !url) {
         return response.status(400).json({ error: 'the title and url are required in a blog post' })
     }
-
-
-
 
     const blog = new Blog({
         title,
@@ -47,35 +33,26 @@ router.post('/', async (request, response) => {
 
     const saveBlog = await blog.save()
     user.blogs = user.blogs.concat(saveBlog._id)
+    await user.save()
     response.status(201).json(saveBlog)
 })
 
 router.delete('/:id', async (request, response) => {
+    const user = request.user
+
     const token = request.token
 
-    if (!token) {
-        return response.status(401).json({ error: 'the token is missing' })
+    if (!user) {
+        return response.status(401).json({ error: 'user was not found' })
     }
-
-    let decodedToken
-    try {
-        decodedToken = jwt.verify(token, process.env.SECRET)
-    } catch {
-        return response.status(401).json({ error: 'invalid token' })
-    }
-
-    if (!decodedToken.id) {
-        return response.status(401).json({ error: 'invalid token' })
-    }
-
-    const userId = decodedToken.id
     const blog = await Blog.findById(request.params.id)
 
     if (!blog) {
-        return response.status(404).json({ error: 'blog not found' })
+        return response.status(404).json({ error: 'the blog could not be found' })
     }
 
-    if (blog.user.toString() !== userId.toString()) {
+
+    if (blog.user.toString() !== user._id.toString()) {
         return response.status(403).json({ error: 'error, only the creator is able to delete this blog' })
     }
 
