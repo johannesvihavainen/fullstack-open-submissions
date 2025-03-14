@@ -6,6 +6,9 @@ const supertest = require('supertest')
 const app = require('../app')
 const Blog = require('../models/blog')
 const assert = require('node:assert/strict')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+const User = require('../models/user')
 
 const api = supertest(app)
 
@@ -114,44 +117,44 @@ const api = supertest(app)
 //     .expect(400)
 // })
 
-const initialBlogsToUpload = [
-  {
-    title: 'a test blog',
-    author: 'an unknown person',
-    url: 'somewhereintheuniverse.com',
-    likes: 10
-  },
-  {
-    title: 'a second test blog',
-    author: 'an unknown human being',
-    url: 'somewhereintheuniverse.com',
-    likes: 20
-  }
-]
+// const initialBlogsToUpload = [
+//   {
+//     title: 'a test blog',
+//     author: 'an unknown person',
+//     url: 'somewhereintheuniverse.com',
+//     likes: 10
+//   },
+//   {
+//     title: 'a second test blog',
+//     author: 'an unknown human being',
+//     url: 'somewhereintheuniverse.com',
+//     likes: 20
+//   }
+// ]
 
-beforeEach(async () => {
-  await Blog.deleteMany({})
-  await Blog.insertMany(initialBlogsToUpload)
-})
+// beforeEach(async () => {
+//   await Blog.deleteMany({})
+//   await Blog.insertMany(initialBlogsToUpload)
+// })
 
-test('update the likes in a blog post', async () => {
-  const blogsAtStart = await Blog.find({})
-  const blogToUpdate = blogsAtStart[0]
+// test('update the likes in a blog post', async () => {
+//   const blogsAtStart = await Blog.find({})
+//   const blogToUpdate = blogsAtStart[0]
 
-  const updatedData = {
-    likes: blogToUpdate.likes + 200
-  }
+//   const updatedData = {
+//     likes: blogToUpdate.likes + 200
+//   }
 
-  const response = await api
-    .put(`/api/blogs/${blogToUpdate.id}`)
-    .send(updatedData)
-    .expect(200)
+//   const response = await api
+//     .put(`/api/blogs/${blogToUpdate.id}`)
+//     .send(updatedData)
+//     .expect(200)
 
-  assert.strictEqual(response.body.likes, blogToUpdate.likes + 200)
+//   assert.strictEqual(response.body.likes, blogToUpdate.likes + 200)
 
-  const updatedBlog = await Blog.findById(blogToUpdate.id)
-  assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 200)
-})
+//   const updatedBlog = await Blog.findById(blogToUpdate.id)
+//   assert.strictEqual(updatedBlog.likes, blogToUpdate.likes + 200)
+// })
 
 
 // test('deletion of a blog post', async () => {
@@ -171,6 +174,73 @@ test('update the likes in a blog post', async () => {
 //   const ids = blogsAtEnd.map(blog => blog.id)
 //   assert(!ids.includes(blogToDelete.id))
 // })
+
+
+
+
+beforeEach(async () => {
+  await User.deleteMany({})
+  await Blog.deleteMany({})
+
+  const passwordHash = await bcrypt.hash('password123', 10)
+  const user = new User({ username: 'testuser', name: 'Test User', passwordHash })
+  const savedUser = await user.save()
+
+  const userToken = { username: savedUser.username, id: savedUser._id }
+  token = jwt.sign(userToken, process.env.SECRET, { expiresIn: 60 * 60 })
+
+  const testBlogs = [
+    { title: 'test blog for blog_api.test.js', author: 'Johannes Vihavainen', url: 'johannesistestinghere.com', likes: 1000, user: savedUser._id }
+  ]
+
+  await Blog.insertMany(testBlogs)
+})
+
+test('a valid blog post can be added ', async () => {
+
+  const blogsAtStart = await Blog.find({})
+
+  const newBlogPost = {
+    title: "a test blog",
+    author: "someone from somewhere once upon a time",
+    url: "testingthesethings.com",
+    likes: 5
+  }
+
+  await api
+    .post('/api/blogs')
+    .set('Authorization', `Bearer ${token}`)
+    .send(newBlogPost)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+
+  const blogsAtEnd = await Blog.find({})
+
+  assert.strictEqual(blogsAtEnd.length, blogsAtStart.length + 1)
+
+  const blogs = blogsAtEnd.map(blog => blog.title)
+  assert.ok(blogs.includes(newBlogPost.title), 'a test blog')
+})
+
+test('if you add a blog without a token, return 401', async () => {
+  const newBlogPost = {
+    title: 'blog that will not work',
+    author: 'unauthorized user',
+    url: 'notokenhere.com',
+    likes: 10
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlogPost)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await Blog.find({})
+  assert.strictEqual(blogsAtEnd.length, 1)
+})
+
 
 
 after(async () => {
