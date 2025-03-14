@@ -14,19 +14,19 @@ router.post('/', async (request, response) => {
     const { title, url, author, likes } = request.body
 
     const token = request.token
-    if(!token) {
-        return response.status(401).json({error: 'token is missing'})
+    if (!token) {
+        return response.status(401).json({ error: 'token is missing' })
     }
 
     let secretToken
     try {
         secretToken = jwt.verify(token, process.env.SECRET)
     } catch {
-        return response.status(401).json({error: 'invalid token'})
+        return response.status(401).json({ error: 'invalid token' })
     }
 
-    if(!secretToken.id) {
-        return response.status(401).json({error: 'invalid token'})
+    if (!secretToken.id) {
+        return response.status(401).json({ error: 'invalid token' })
     }
     const user = await User.findById(secretToken.id)
 
@@ -35,7 +35,7 @@ router.post('/', async (request, response) => {
     }
 
 
-    
+
 
     const blog = new Blog({
         title,
@@ -51,13 +51,37 @@ router.post('/', async (request, response) => {
 })
 
 router.delete('/:id', async (request, response) => {
-    try {
-        const { id } = request.params
-        await Blog.findByIdAndDelete(id)
-        response.status(204).end()
-    } catch (error) {
-        response.status(400).json({ error: 'invalid id' })
+    const token = request.token
+
+    if (!token) {
+        return response.status(401).json({ error: 'the token is missing' })
     }
+
+    let decodedToken
+    try {
+        decodedToken = jwt.verify(token, process.env.SECRET)
+    } catch {
+        return response.status(401).json({ error: 'invalid token' })
+    }
+
+    if (!decodedToken.id) {
+        return response.status(401).json({ error: 'invalid token' })
+    }
+
+    const userId = decodedToken.id
+    const blog = await Blog.findById(request.params.id)
+
+    if (!blog) {
+        return response.status(404).json({ error: 'blog not found' })
+    }
+
+    if (blog.user.toString() !== userId.toString()) {
+        return response.status(403).json({ error: 'error, only the creator is able to delete this blog' })
+    }
+
+    await Blog.findByIdAndDelete(request.params.id)
+    response.status(204).end()
+
 })
 
 router.put('/:id', async (request, response) => {
