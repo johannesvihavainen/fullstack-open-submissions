@@ -1,6 +1,7 @@
 const express = require('express')
 const Blog = require('../models/blog')
 const router = express.Router()
+const jwt = require('jsonwebtoken')
 const User = require('../models/user')
 
 router.get('/', async (request, response) => {
@@ -10,16 +11,27 @@ router.get('/', async (request, response) => {
 
 router.post('/', async (request, response) => {
 
-    const { title, url, author, likes, userId } = request.body
+    const { title, url, author, likes } = request.body
+
+    const token = request.token
+    if(!token) {
+        return response.status(401).json({error: 'token is missing'})
+    }
+
+    let secretToken
+    try {
+        secretToken = jwt.verify(token, process.env.SECRET)
+    } catch {
+        return response.status(401).json({error: 'invalid token'})
+    }
+
+    if(!secretToken.id) {
+        return response.status(401).json({error: 'invalid token'})
+    }
+    const user = await User.findById(secretToken.id)
 
     if (!title || !url) {
         return response.status(400).json({ error: 'the title and url are required in a blog post' })
-    }
-
-    const user = await User.findById(userId)
-
-    if (!user) {
-        return response.status(400).json({ error: 'no users found in the database' })
     }
 
 
@@ -35,7 +47,6 @@ router.post('/', async (request, response) => {
 
     const saveBlog = await blog.save()
     user.blogs = user.blogs.concat(saveBlog._id)
-    await user.save()
     response.status(201).json(saveBlog)
 })
 
