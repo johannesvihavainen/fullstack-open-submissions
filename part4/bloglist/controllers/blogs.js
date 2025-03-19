@@ -34,7 +34,9 @@ router.post('/', async (request, response) => {
     const saveBlog = await blog.save()
     user.blogs = user.blogs.concat(saveBlog._id)
     await user.save()
-    response.status(201).json(saveBlog)
+
+    const populateBlog = await Blog.findById(saveBlog._id).populate('user', { username: 1, name: 1 })
+    response.status(201).json(populateBlog)
 })
 
 router.delete('/:id', async (request, response) => {
@@ -64,7 +66,12 @@ router.delete('/:id', async (request, response) => {
 router.put('/:id', async (request, response) => {
     const { likes } = request.body
 
-    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, { likes }, { new: true, runValidators: true })
+    const blogToUpdate = await Blog.findById(request.params.id)
+    if (!blogToUpdate) {
+        return response.status(404).json({ error: 'blog was not found' })
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, { likes, user: blogToUpdate.user }, { new: true, runValidators: true }).populate('user', { username: 1, name: 1 })
 
     if (updatedBlog) {
         response.json(updatedBlog)
