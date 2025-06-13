@@ -11,6 +11,7 @@ usersRouter.get('/', async (request, response) => {
 
 usersRouter.post('/', async (request, response) => {
     const { username, name, password } = request.body
+    console.log('Creating user:', username)
 
     if (!username || username.length < 3) {
         return response.status(400).json({ error: 'username must be 3 characters long or more' })
@@ -31,6 +32,7 @@ usersRouter.post('/', async (request, response) => {
     })
 
     const savedUser = await user.save()
+    console.log('User saved:', savedUser.username)
 
     response.status(201).json(savedUser)
 })

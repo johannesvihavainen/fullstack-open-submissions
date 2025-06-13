@@ -1,0 +1,17 @@
+{
+  "name": "playwright-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.53.0"
+  },
+  "watch": ["index.js", "controllers", "models"],
+  "ignore": ["node_modules", "logs", "tests", "playwright-tests"]
+}
