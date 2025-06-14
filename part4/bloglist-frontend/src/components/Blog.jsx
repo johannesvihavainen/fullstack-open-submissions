@@ -67,8 +67,6 @@ Blog.propTypes = {
       username: PropTypes.string,
     })
   }).isRequired,
-  handleLikes: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   updateBlog: PropTypes.func.isRequired,
   user: PropTypes.shape({
