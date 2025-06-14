@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'http://localhost:3003/api/blogs'
+const baseUrl = '/api/blogs'
 
 let token = null
 
@@ -22,7 +22,7 @@ const create = async (newBlog) => {
   return response.data
 }
 
-const update = async (id, updatedBlog, token) => {
+const update = async (id, updatedBlog) => {
   const config = {
     headers: { Authorization: `Bearer ${token}` }
   }

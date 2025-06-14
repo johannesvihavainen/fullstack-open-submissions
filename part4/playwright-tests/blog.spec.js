@@ -31,7 +31,7 @@ describe('Blog app', () => {
         await expect(page.getByTestId('password')).toBeVisible()
         await expect(page.getByRole('button', { name: 'login' })).toBeVisible()
     })
-    
+
 
     test.describe('Login', () => {
         test('succeeds with correct credentials', async ({ page }) => {
@@ -50,6 +50,28 @@ describe('Blog app', () => {
 
             const errorMessage = page.getByText('Sorry to have to let you know this, but you just do not have the valid credentials.')
             await expect(errorMessage).toBeVisible()
+        })
+    })
+
+    describe('When logged in', () => {
+        test.beforeEach(async ({ page }) => {
+            await page.goto('http://localhost:5173/')
+
+            await page.getByTestId('username').fill('johannes')
+            await page.getByTestId('password').fill('password123')
+            await page.getByRole('button', {name: 'login'}).click()
+        })
+
+        test('a new blog can be created', async ({ page }) => {
+            await page.getByRole('button', {name: 'Create new blog'}).click()
+
+            await page.getByTestId('title-input').fill('test blog')
+            await page.getByTestId('author-input').fill('an unknown author')
+            await page.getByTestId('url-input').fill('unknownauthors.com')
+
+            await page.getByRole('button', {name: 'create'}).click()
+
+            await expect(page.getByText('test blog an unknown author')).toBeVisible()
         })
     })
 
