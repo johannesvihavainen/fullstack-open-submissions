@@ -32,7 +32,7 @@ const Blog = ({ blog, updateBlog, user, onDelete }) => {
   }
 
   return (
-    <div style={blogStyle}>
+    <div className="blog" style={blogStyle} data-testid={`blog-${blog.id}`}>
       <div>
         {blog.title} {blog.author}
         <button onClick={toggleVisibility}>

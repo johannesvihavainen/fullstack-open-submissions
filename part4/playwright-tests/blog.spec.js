@@ -102,7 +102,7 @@ describe('Blog app', () => {
         await expect(likeText).toBeVisible()
     })
 
-    test('a user who created a blog can delete it', async ({page}) => {
+    test('a user who created a blog can delete it', async ({ page }) => {
         await new Promise(res => setTimeout(res, 500))
         await page.getByTestId('username').fill('johannes')
         await page.getByTestId('password').fill('password123')
@@ -122,24 +122,24 @@ describe('Blog app', () => {
 
         await page.getByRole('button', { name: /view/i }).click()
 
-        await page.getByRole('button', {name: 'delete'}).click()
+        await page.getByRole('button', { name: 'delete' }).click()
 
         await expect(page.getByText('blog to be deleted')).toHaveCount(0)
     })
 
     test.describe('Blog delete button visibility', () => {
-        test.beforeEach(async ({page, request}) => {
+        test.beforeEach(async ({ page, request }) => {
             await request.post('http://localhost:3001/api/testing/reset')
 
             await request.post('http://localhost:3001/api/users', {
-                data: {username: 'owner', name: 'Owner', password: 'secretpassword1'}
+                data: { username: 'owner', name: 'Owner', password: 'secretpassword1' }
             })
             await request.post('http://localhost:3001/api/users', {
-                data: {username: 'user2', name: 'User 2', password: 'secretpassword2'}
+                data: { username: 'user2', name: 'User 2', password: 'secretpassword2' }
             })
 
             const loginResponse = await request.post('http://localhost:3001/api/login', {
-                data: {username: 'owner', password: 'secretpassword1'}
+                data: { username: 'owner', password: 'secretpassword1' }
             })
 
             const ownerToken = (await loginResponse.json()).token
@@ -156,30 +156,110 @@ describe('Blog app', () => {
             })
         })
 
-        test('delete button visible only to blog owner', async ({page}) => {
+        test('delete button visible only to blog owner', async ({ page }) => {
             await page.goto('http://localhost:5173')
             await new Promise(res => setTimeout(res, 500))
             await page.getByTestId('username').fill('owner')
             await page.getByTestId('password').fill('secretpassword1')
             await page.getByRole('button', { name: 'Login' }).click()
-    
-            await page.getByText('a blog by the owner').getByRole('button', {name: 'view'}).click()
-    
-            await expect(page.getByRole('button', {name: 'delete'})).toBeVisible()
-    
-            await page.getByRole('button', {name: 'log out'}).click()
-    
+
+            await page.getByText('a blog by the owner').getByRole('button', { name: 'view' }).click()
+
+            await expect(page.getByRole('button', { name: 'delete' })).toBeVisible()
+
+            await page.getByRole('button', { name: 'log out' }).click()
+
             await page.getByTestId('username').fill('user2')
             await page.getByTestId('password').fill('secretpassword2')
             await page.getByRole('button', { name: 'Login' }).click()
-    
-            await page.getByText('a blog by the owner').getByRole('button', {name: 'view'}).click()
-    
-            await expect(page.getByRole('button', {name: 'delete'})).toHaveCount(0)
+
+            await page.getByText('a blog by the owner').getByRole('button', { name: 'view' }).click()
+
+            await expect(page.getByRole('button', { name: 'delete' })).toHaveCount(0)
         })
     })
 
-    
+    test('blogs are ordered by the likes descending', async ({ page, request }) => {
+        await page.goto('http://localhost:5173')
+        await page.getByTestId('username').fill('johannes')
+        await page.getByTestId('password').fill('password123')
+        await page.getByRole('button', { name: 'Login' }).click()
+
+        // Create blog 1 (0 likes)
+        await page.getByRole('button', { name: 'Create new blog' }).click()
+        await page.getByTestId('title-input').fill('Blog 1')
+        await page.getByTestId('author-input').fill('Author 1')
+        await page.getByTestId('url-input').fill('url1.com')
+        await page.getByRole('button', { name: 'create' }).click()
+
+        // Create blog 2 (0 likes)
+        await page.getByRole('button', { name: 'Create new blog' }).click()
+        await page.getByTestId('title-input').fill('Blog 2')
+        await page.getByTestId('author-input').fill('Author 2')
+        await page.getByTestId('url-input').fill('url2.com')
+        await page.getByRole('button', { name: 'create' }).click()
+
+
+        // Get the token directly from backend
+        const loginResponse = await request.post('http://localhost:3001/api/login', {
+            data: { username: 'johannes', password: 'password123' }
+        })
+        const { token } = await loginResponse.json()
+
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+        }
+
+        // Get all blogs from backend to get their IDs
+        const blogsResponse = await request.get('http://localhost:3001/api/blogs', { headers })
+        const blogs = await blogsResponse.json()
+
+        // Find your created blogs by title or author
+        const blog1 = blogs.find(b => b.title === 'Blog 1')
+        const blog2 = blogs.find(b => b.title === 'Blog 2')
+
+        // Update likes via API PATCH or PUT request
+        await request.put(`http://localhost:3001/api/blogs/${blog1.id}`, {
+            data: {
+                ...blog1,
+                likes: 10 // set likes here
+            },
+            headers
+        })
+
+        await request.put(`http://localhost:3001/api/blogs/${blog2.id}`, {
+            data: {
+                ...blog2,
+                likes: 5
+            },
+            headers
+        })
+
+        // Reload page to get updated blogs with likes
+        await page.reload()
+        await page.waitForSelector('[data-testid^="blog-"]')
+
+        const blogContainers = page.locator('[data-testid^="blog-"]')
+        const count = await blogContainers.count()
+
+        const likesArray = []
+        for (let i = 0; i < count; i++) {
+            const blog = blogContainers.nth(i)
+            await blog.getByRole('button', { name: 'view' }).click()
+
+            const likesText = await blog.locator('p:has-text("likes")').textContent()
+
+            const likes = parseInt(likesText.replace(/[^0-9]/g, ''))
+            console.log('likesText:', likesText)
+            likesArray.push(likes)
+        }
+
+        for (let i = 0; i < likesArray.length - 1; i++) {
+            expect(likesArray[i] >= likesArray[i + 1]).toBe(true)
+        }
+
+    })
 
 
 })
