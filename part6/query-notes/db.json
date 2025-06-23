@@ -1,0 +1,14 @@
+{
+  "notes": [
+    {
+      "id": "1",
+      "content": "This is a test note and it's very important",
+      "important": true
+    },
+    {
+      "id": "2",
+      "content": "This is another note that's not so important",
+      "important": false
+    }
+  ]
+}
