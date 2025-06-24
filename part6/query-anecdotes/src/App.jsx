@@ -3,8 +3,11 @@ import Notification from './components/Notification'
 import { addAnecdote, getAnecdotes } from './requests'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { updateAnecdote } from './requests'
+import NotificationContext from './contexts/NotificationContext'
+import { useContext } from 'react'
 
 const App = () => {
+  const [notification, dispatch] = useContext(NotificationContext)
   const queryClient = useQueryClient()
 
   const { data: anecdotes, isLoading, isError } = useQuery({
@@ -12,21 +15,35 @@ const App = () => {
     queryFn: getAnecdotes,
   })
 
+  const showNotification = (message) => {
+    dispatch({ type: 'SHOW', payload: message })
+    setTimeout(() => {
+      dispatch({ type: 'HIDE' })
+    }, 5000);
+  }
+
   const mutation = useMutation({
     mutationFn: addAnecdote,
-    onSuccess: () => {
+    onSuccess: (newAnecdote) => {
       queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
+      showNotification(`anecdote '${newAnecdote.content}' created`)
     }
   })
 
   const addNewAnecdote = (anecdote) => {
-    mutation.mutate(anecdote)
+    mutation.mutate(anecdote, {
+      onSuccess: () => {
+        dispatch({ type: 'SET', payload: `new anecdote '${anecdote.content}' added!` })
+        setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
+      }
+    })
   }
 
   const voteMutation = useMutation({
     mutationFn: updateAnecdote,
-    onSuccess: () => {
+    onSuccess: (updatedAnecdote) => {
       queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
+      showNotification(`anecdote '${updatedAnecdote.content}' voted`)
     }
   })
 
@@ -35,7 +52,12 @@ const App = () => {
       ...anecdote,
       votes: anecdote.votes + 1
     }
-    voteMutation.mutate(updatedAnecdote)
+    voteMutation.mutate(updatedAnecdote, {
+      onSuccess: () => {
+        dispatch({ type: 'SET', payload: `you voted '${anecdote.content}'` })
+        setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
+      }
+    })
   }
 
   if (isLoading) {
