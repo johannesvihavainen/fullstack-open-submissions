@@ -16,9 +16,9 @@ const App = () => {
   })
 
   const showNotification = (message) => {
-    dispatch({ type: 'SHOW', payload: message })
+    dispatch({ type: 'SET', payload: message })
     setTimeout(() => {
-      dispatch({ type: 'HIDE' })
+      dispatch({ type: 'CLEAR' })
     }, 5000);
   }
 
@@ -35,6 +35,10 @@ const App = () => {
       onSuccess: () => {
         dispatch({ type: 'SET', payload: `new anecdote '${anecdote.content}' added!` })
         setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
+      },
+      onError: (error) => {
+        dispatch({ type: 'SET', payload: error.response.data.error || 'an error occurred' })
+        setTimeout(() => dispatch({ type: 'CLEAR' }), 5000)
       }
     })
   }
@@ -44,7 +48,7 @@ const App = () => {
     onSuccess: (updatedAnecdote) => {
       queryClient.invalidateQueries({ queryKey: ['anecdotes'] })
       showNotification(`anecdote '${updatedAnecdote.content}' voted`)
-    }
+    } 
   })
 
   const handleVote = (anecdote) => {
